@@ -22,7 +22,7 @@ Provider details checked 4 October 2026: [Render free service restrictions](http
 
 Use the existing Git repository under your account. Create a Neon project, an Infisical project with a `prod` environment, and a Resend account with a verified sender. Keep development and production secrets/databases separate. A production email domain is needed to send to arbitrary users; a provider sandbox sender may permit only your own address.
 
-Push the repository with `.local`, `.tools`, `node_modules`, artifacts and database files excluded. Review the commit content before pushing. This task has not pushed anything.
+The repository is published with `.local`, `.tools`, `node_modules`, artifacts and database files excluded. Keep those paths out of future commits.
 
 ## 2. Store signing secrets in Infisical
 
