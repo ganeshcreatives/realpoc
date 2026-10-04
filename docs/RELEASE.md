@@ -8,12 +8,16 @@ The SDK, React UI, BFF, private API, account workflows, ownership authorization,
 
 On 4 October 2026, `scripts/Smoke.ps1` passed against the running local integrated app. It exercised registration, email verification, login, a parent-owned student and balance, application submission, an invalid browser signature, replay rejection, cross-account record denial, staff action denial for a parent, operator staff grant, staff approval and stale-version rejection. The test used disposable local accounts and the protected local mail sink. It did not exercise PostgreSQL, cloud hosting, live email, Infisical, load, or a hostile security review.
 
+## Hosted end-to-end evidence
+
+On 4 October 2026, the live Render/Neon/Infisical/Resend demo accepted a browser registration request, Resend reported delivery of its verification email to the account owner's test address, and the verification link activated a sample parent account. Browser sign-in, sample student creation, zero balance, school application submission, application listing and session-context recovery after reload succeeded. The browser's request activity showed successful signed reads and context recovery. This exercises the positive browser → BFF → API → database path with live email. It does not prove hostile-request resistance on the hosted ingress, email delivery to other recipients, or production availability. The local smoke script was rerun and passed its negative cases on the same date.
+
 ## Before public release
 
 | Item | Current state | Required evidence/configuration |
 |---|---|---|
 | .NET 10 | Installed locally; release builds pass | Patch policy and compatible runtime on host |
-| SDK | Published publicly as `@ganeshcreatives/browser-sdk@1.0.0`, packed, and served from the public app | Verify compatibility for each future release |
+| SDK | Published publicly as `@ganeshcreatives/browser-sdk@1.0.1`, packed, and served from the public app | Verify compatibility for each future release |
 | React/BFF/API | Deployed on Render Free; public page and SDK returned HTTP 200 | Full real-host behavior and security verification; free service cold-start availability |
 | Infisical | Production keyrings and Viewer machine identity configured; app startup succeeded | Restrict identity beyond project-wide Viewer if plan permits, test revocation and rotation |
 | Hosted database | Neon Free PostgreSQL in Singapore; initial migration and readiness check succeeded | Separate runtime/migration roles, TLS evidence, backup/restore exercise |

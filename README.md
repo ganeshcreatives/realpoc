@@ -65,7 +65,7 @@ Sign in again with that account to review applications. There are no seeded pass
 npm run pack:sdk
 ```
 
-Install the [public npm package](https://www.npmjs.com/package/@ganeshcreatives/browser-sdk) with `npm i @ganeshcreatives/browser-sdk`. A local package is available at `artifacts\ganeshcreatives-browser-sdk-1.0.0.tgz`. The hosted app also serves an ESM SDK module at [the public SDK URL](https://school-portal-yi3f.onrender.com/sdk/browser-sdk.js); TypeScript declarations are in the npm package. See `docs/HOSTING.md` for hosting and publishing details.
+Install the [public npm package](https://www.npmjs.com/package/@ganeshcreatives/browser-sdk) with `npm i @ganeshcreatives/browser-sdk`. A local package is available at `artifacts\ganeshcreatives-browser-sdk-1.0.1.tgz`. The hosted app also serves an ESM SDK module at [the public SDK URL](https://school-portal-yi3f.onrender.com/sdk/browser-sdk.js); TypeScript declarations are in the npm package. See `docs/HOSTING.md` for hosting and publishing details. The repository and SDK use the [MIT license](LICENSE).
 
 ## Documentation
 
