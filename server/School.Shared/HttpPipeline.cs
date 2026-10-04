@@ -4,6 +4,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace School.Shared;
@@ -12,11 +13,13 @@ public static class HttpPipeline
 {
     public static void UseSafeErrors(this WebApplication app)
     {
+        var requestTimeoutSeconds = app.Configuration.GetValue("Timeouts:RequestSeconds", 10);
+        if (requestTimeoutSeconds is < 5 or > 60) throw new InvalidOperationException("Request timeout must be between 5 and 60 seconds.");
         app.Use(async (ctx, next) =>
         {
             var callerAborted = ctx.RequestAborted;
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(callerAborted);
-            deadline.CancelAfter(TimeSpan.FromSeconds(10));
+            deadline.CancelAfter(TimeSpan.FromSeconds(requestTimeoutSeconds));
             ctx.RequestAborted = deadline.Token;
             ctx.TraceIdentifier = Guid.NewGuid().ToString("N");
             ctx.Response.Headers["X-Correlation-Id"] = ctx.TraceIdentifier;

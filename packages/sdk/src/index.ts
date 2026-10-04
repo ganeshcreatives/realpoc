@@ -20,7 +20,12 @@ export class SchoolClient {
   private offset = 0;
   private observer?: (event: RequestEvent) => void;
   private user?: User;
-  constructor(options: { onRequest?: (event: RequestEvent) => void } = {}) { this.observer = options.onRequest; }
+  private readonly timeoutMs: number;
+  constructor(options: { onRequest?: (event: RequestEvent) => void; timeoutMs?: number } = {}) {
+    this.observer = options.onRequest;
+    this.timeoutMs = options.timeoutMs ?? 15000;
+    if (!Number.isSafeInteger(this.timeoutMs) || this.timeoutMs < 1000 || this.timeoutMs > 120000) throw new SchoolError('VALIDATION_FAILED');
+  }
   private emit(event: RequestEvent) { try { this.observer?.(event); } catch { /* UI observers cannot alter network behavior. */ } }
   private clear() { this.key = undefined; this.user = undefined; this.offset = 0; }
   private async accept(context: Context): Promise<User> {
@@ -65,7 +70,7 @@ export class SchoolClient {
       headers.set('X-SC-App','main'); headers.set('X-SC-Session','cookie'); headers.set('X-SC-Timestamp',timestamp);
       headers.set('X-SC-Request-Id',requestId); headers.set('X-SC-Signature',btoa(String.fromCharCode(...signature)));
     }
-    const controller = new AbortController(); const timer = setTimeout(() => controller.abort(),15000);
+    const controller = new AbortController(); const timer = setTimeout(() => controller.abort(),this.timeoutMs);
     try {
       this.emit({method,route:safeRoute,stage:'sending'});
       const response = await fetch(path,{method,headers,body:serialized,credentials:'same-origin',mode:'same-origin',redirect:'error',cache:'no-store',signal:controller.signal});

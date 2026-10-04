@@ -1,5 +1,5 @@
 {
-  "name":"@ganeshcreatives/browser-sdk", "version":"1.0.1", "description":"Typed same-origin School Portal client with per-session request signing", "license":"MIT", "type":"module",
+  "name":"@ganeshcreatives/browser-sdk", "version":"1.0.2", "description":"Typed same-origin School Portal client with per-session request signing", "license":"MIT", "type":"module",
   "files":["dist","README.md"], "main":"./dist/index.js", "types":"./dist/index.d.ts",
   "repository":{"type":"git","url":"git+https://github.com/ganeshcreatives/realpoc.git","directory":"packages/sdk"},
   "exports":{".":{"types":"./dist/index.d.ts","import":"./dist/index.js"}},

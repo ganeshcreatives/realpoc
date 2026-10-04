@@ -10,7 +10,7 @@ const students = await school.students();
 const balance = await school.balance(students[0].id);
 ```
 
-After a reload call `restore()` once. Handle `SESSION_REQUIRED`/`SESSION_EXPIRED` by showing login. Use `SchoolError.code`, `status`, `traceId`, and `retryAfter` for safe error handling. Do not automatically retry writes; retain the same `submissionId` and payload if a user explicitly retries an uncertain application submission.
+After a reload call `restore()` once. Handle `SESSION_REQUIRED`/`SESSION_EXPIRED` by showing login. Use `SchoolError.code`, `status`, `traceId`, and `retryAfter` for safe error handling. The default request timeout is 15 seconds; a slow free host can use `new SchoolClient({ timeoutMs: 90000 })`. Do not automatically retry writes; retain the same `submissionId` and payload if a user explicitly retries an uncertain application submission.
 
 Keys remain in tab memory. The browser signing value is visible to the user and to injected scripts. It is not an API service secret, identity proof, or replacement for API authorization. The SDK never receives API access tokens, allows arbitrary destinations, or forwards credentials to other origins.
 

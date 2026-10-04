@@ -2,7 +2,7 @@
 
 ## What is available now
 
-The app runs locally and at [the public Render demo](https://school-portal-yi3f.onrender.com). The [SDK is published on npm](https://www.npmjs.com/package/@ganeshcreatives/browser-sdk) as version 1.0.1 and is also served as an ESM module by the hosted app. The public source repository is `ganeshcreatives/realpoc`. Render Free, Neon Free (Singapore), the Infisical School Portal project and a Resend sending key are provisioned. A verified email domain remains pending. Resend's test sender is restricted to the account owner's address. Secret values belong in provider dashboards, never in chat or Git.
+The app runs locally and at [the public Render demo](https://school-portal-yi3f.onrender.com). The [SDK is published on npm](https://www.npmjs.com/package/@ganeshcreatives/browser-sdk) as version 1.0.2 and is also served as an ESM module by the hosted app. The public source repository is `ganeshcreatives/realpoc`. Render Free, Neon Free (Singapore), the Infisical School Portal project and a Resend sending key are provisioned. A verified email domain remains pending. Resend's test sender is restricted to the account owner's address. Secret values belong in provider dashboards, never in chat or Git.
 
 ## Suggested free starting deployment
 
@@ -74,9 +74,11 @@ For later releases, back up the database, review the migration SQL, and apply wi
 
 Health check: `/health/ready` checks the database and private API. `/health/live` checks process reachability only. Neither exposes keys/configuration. Both processes terminate together if one fails; Render can restart the container. There is no multi-host failover in this deployment.
 
+The free deployment's startup script sets bounded request deadlines: API 20 seconds, BFF upstream 25 seconds, BFF request 30 seconds. The included React app allows 90 seconds for the initial free-host wake-up; the published SDK defaults to 15 seconds in other consumers. These are demo availability settings, not evidence that production performance objectives are met. Override `API_REQUEST_TIMEOUT_SECONDS`, `BFF_UPSTREAM_TIMEOUT_SECONDS`, and `BFF_REQUEST_TIMEOUT_SECONDS` only after measuring the host and keeping each timeout bounded.
+
 ## 5. Publish the SDK for free
 
-The SDK is published as `@ganeshcreatives/browser-sdk@1.0.1` under the owned npm account. Keep future package versions synchronized with the app dependency. To prepare a future version, update its version and release notes, then:
+The SDK is published as `@ganeshcreatives/browser-sdk@1.0.2` under the owned npm account. Keep future package versions synchronized with the app dependency. To prepare a future version, update its version and release notes, then:
 
 ```powershell
 npm run pack:sdk

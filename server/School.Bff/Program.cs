@@ -14,7 +14,9 @@ var backend = new Uri(builder.Configuration["ApiOrigin"] ?? "http://127.0.0.1:50
 if (backend.AbsolutePath != "/" || (backend.Scheme != "https" && !(backend.Scheme == "http" && backend.IsLoopback))) throw new InvalidOperationException("API must use HTTPS or private loopback.");
 builder.Configuration["AllowedHosts"] = origin.Host + ";localhost;127.0.0.1";
 builder.Services.AddSchoolDatabase(builder.Configuration);
-builder.Services.AddHttpClient("api", c => { c.BaseAddress = backend; c.Timeout = TimeSpan.FromSeconds(8); }).ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false, UseCookies = false, ConnectTimeout = TimeSpan.FromSeconds(3), AutomaticDecompression = DecompressionMethods.None });
+var upstreamTimeoutSeconds = builder.Configuration.GetValue("Timeouts:UpstreamSeconds", 8);
+if (upstreamTimeoutSeconds is < 3 or > 55) throw new InvalidOperationException("Upstream timeout must be between 3 and 55 seconds.");
+builder.Services.AddHttpClient("api", c => { c.BaseAddress = backend; c.Timeout = TimeSpan.FromSeconds(upstreamTimeoutSeconds); }).ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false, UseCookies = false, ConnectTimeout = TimeSpan.FromSeconds(3), AutomaticDecompression = DecompressionMethods.None });
 builder.Logging.AddFilter("Microsoft.AspNetCore", LogLevel.Warning);
 builder.Logging.AddFilter("System.Net.Http.HttpClient", LogLevel.None);
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);
@@ -138,7 +140,7 @@ static async Task TouchSession(BrowserSession session,SchoolDb db,CancellationTo
 }
 async Task<Upstream> Send(HttpContext ctx,SchoolDb db,IHttpClientFactory clients,string method,string path,byte[] body,string? token,BrowserSession? session,CancellationToken ct)
 {
-    using var deadline = CancellationTokenSource.CreateLinkedTokenSource(ct); deadline.CancelAfter(TimeSpan.FromSeconds(8));
+    using var deadline = CancellationTokenSource.CreateLinkedTokenSource(ct); deadline.CancelAfter(TimeSpan.FromSeconds(upstreamTimeoutSeconds));
     using var request = new HttpRequestMessage(new HttpMethod(method),path);
     if (body.Length > 0) { request.Content = new ByteArrayContent(body); request.Content.Headers.ContentType = new("application/json"); }
     var authorization = token is null ? "" : "Bearer " + token;

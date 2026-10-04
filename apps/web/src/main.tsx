@@ -5,12 +5,13 @@ import './styles.css';
 
 const messages: Record<string,string> = {
   INVALID_CREDENTIALS:'Check your email and password, and make sure your email is verified.',
-  SESSION_EXPIRED:'Your session has ended. Please sign in again.', SESSION_REQUIRED:'Please sign in to continue.',
+  SESSION_EXPIRED:'Your session has ended. Please sign in again.', SESSION_REQUIRED:'Please sign in to continue.', SIGNATURE_INVALID:'Your session changed. Reload the page or sign in again.',
   PASSWORD_POLICY:'Choose a passphrase with 15–128 characters.', LINK_INVALID:'This link has expired or was already used. Request a new one.',
   RATE_LIMITED:'Too many attempts. Please wait before trying again.', RECORD_NOT_FOUND:'This record is not available to your account.',
   VERSION_CONFLICT:'This application was already updated. Refresh the list.', APPLICATION_ALREADY_EXISTS:'An application for this student, school and year already exists.',
-  CLIENT_TIMEOUT:'The request timed out. A submission may have completed. Check your applications before retrying.',
-  NETWORK_ERROR:'We could not reach the server. Check your connection.', SERVICE_UNAVAILABLE:'The service is temporarily unavailable.',
+  CLIENT_TIMEOUT:'The request timed out. If you submitted an application, refresh its status before retrying.',
+  UPSTREAM_TIMEOUT:'The service took too long. Please try again; check application status before repeating a submission.',
+  NETWORK_ERROR:'We could not reach the server. Check your connection.', SERVICE_UNAVAILABLE:'The service is temporarily unavailable.', UPSTREAM_UNAVAILABLE:'The service is temporarily unavailable.',
   SECURITY_STATE_UNAVAILABLE:'The secure session service is unavailable. Please try again later.', ACCESS_DENIED:'Your account does not have permission for this action.',
   IDEMPOTENCY_CONFLICT:'This request reference was already used with different details.', VALIDATION_FAILED:'Please check the entered details.',
   BFF_SERVICE_AUTH_FAILED:'The server could not authenticate its backend request. Please contact support with the reference below.'
@@ -19,7 +20,7 @@ function CampusArt() { return <svg className="campus-art" viewBox="0 0 500 310" 
 function App() {
   const [events,setEvents] = useState<RequestEvent[]>([]);
   const clientRef = useRef<SchoolClient | null>(null);
-  if (!clientRef.current) clientRef.current = new SchoolClient({onRequest:e => { if(e.stage === 'complete' || e.stage === 'error') setEvents(v=>[e,...v].slice(0,12)); }});
+  if (!clientRef.current) clientRef.current = new SchoolClient({timeoutMs:90000,onRequest:e => { if(e.stage === 'complete' || e.stage === 'error') setEvents(v=>[e,...v].slice(0,12)); }});
   const client = clientRef.current;
   const [user,setUser] = useState<User>(); const [initializing,setInitializing] = useState(true);
   const [view,setView] = useState('Overview'); const [authMode,setAuthMode] = useState('login');
@@ -35,7 +36,7 @@ function App() {
   function failure(e: unknown) {
     if (e instanceof SchoolError) {
       setError((messages[e.code] ?? 'We could not complete that request. Please try again.') + (e.traceId ? ` Reference: ${e.traceId}` : ''));
-      if (['SESSION_EXPIRED','SESSION_REQUIRED','SESSION_CONTEXT_REQUIRED'].includes(e.code)) { setUser(undefined); setStudents([]); setBalances([]); setApplications([]); setStaff([]); }
+      if (['SESSION_EXPIRED','SESSION_REQUIRED','SESSION_CONTEXT_REQUIRED','SIGNATURE_INVALID'].includes(e.code)) { setUser(undefined); setStudents([]); setBalances([]); setApplications([]); setStaff([]); }
     } else setError('Something went wrong. Please try again.');
   }
   async function run(fn:()=>Promise<void>) { if(busy)return; setBusy(true);setError('');setNotice('');try{await fn();}catch(e){failure(e);}finally{setBusy(false);} }

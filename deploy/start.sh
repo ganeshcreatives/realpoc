@@ -19,8 +19,10 @@ trap 'exit 143' TERM INT
 if [ "${INITIALIZE_DATABASE:-false}" = true ]; then
   (cd /app/api && dotnet School.Api.dll --migrate-db)
 fi
-(cd /app/api && ASPNETCORE_URLS=http://127.0.0.1:5081 exec dotnet School.Api.dll) & api_pid=$!
-(cd /app/bff && ASPNETCORE_URLS="http://0.0.0.0:${PORT:-8080}" exec dotnet School.Bff.dll) & bff_pid=$!
+# Free Neon/Render can take longer to wake than the strict local defaults.
+# Keep each deadline bounded and give the BFF more time than the API.
+(cd /app/api && Timeouts__RequestSeconds="${API_REQUEST_TIMEOUT_SECONDS:-20}" ASPNETCORE_URLS=http://127.0.0.1:5081 exec dotnet School.Api.dll) & api_pid=$!
+(cd /app/bff && Timeouts__RequestSeconds="${BFF_REQUEST_TIMEOUT_SECONDS:-30}" Timeouts__UpstreamSeconds="${BFF_UPSTREAM_TIMEOUT_SECONDS:-25}" ASPNETCORE_URLS="http://0.0.0.0:${PORT:-8080}" exec dotnet School.Bff.dll) & bff_pid=$!
 # End the container if either service fails, allowing the host to restart both.
 set +e
 wait -n "$api_pid" "$bff_pid"

@@ -17,7 +17,7 @@ On 4 October 2026, the live Render/Neon/Infisical/Resend demo accepted a browser
 | Item | Current state | Required evidence/configuration |
 |---|---|---|
 | .NET 10 | Installed locally; release builds pass | Patch policy and compatible runtime on host |
-| SDK | Published publicly as `@ganeshcreatives/browser-sdk@1.0.1`, packed, and served from the public app | Verify compatibility for each future release |
+| SDK | Published publicly as `@ganeshcreatives/browser-sdk@1.0.2`, packed, and served from the public app | Verify compatibility for each future release |
 | React/BFF/API | Deployed on Render Free; public page and SDK returned HTTP 200 | Full real-host behavior and security verification; free service cold-start availability |
 | Infisical | Production keyrings and Viewer machine identity configured; app startup succeeded | Restrict identity beyond project-wide Viewer if plan permits, test revocation and rotation |
 | Hosted database | Neon Free PostgreSQL in Singapore; initial migration and readiness check succeeded | Separate runtime/migration roles, TLS evidence, backup/restore exercise |
@@ -28,6 +28,8 @@ On 4 October 2026, the live Render/Neon/Infisical/Resend demo accepted a browser
 | Privileged accounts | Explicit operator staff grant | Organization's MFA/SSO requirement and lifecycle controls |
 
 The first public readiness check returned HTTP 200. After a redeploy, one check briefly returned HTTP 504 during restart and the next returned HTTP 200. Cold starts and this transient failure remain availability limits of the free deployment.
+
+On 4 October 2026, live logs showed an API login complete in about 7.5 seconds while the BFF's former 8-second upstream deadline returned 504 to the browser. A free-host timeout profile and a configurable SDK timeout were added to allow for Render/Neon wake-up. A separate `SIGNATURE_INVALID` was also observed; the UI now clears its stale account view and asks the user to reload or sign in again, without automatically retrying a write. These changes require a successful hosted redeploy and repeat observation before treating this incident as resolved. A 30-minute idle session still expires by design and requires sign-in again.
 
 ## Acceptance cases to execute before production
 
