@@ -4,7 +4,7 @@ A full-stack school application project with a reusable TypeScript SDK, React UI
 
 Repository: [ganeshcreatives/realpoc](https://github.com/ganeshcreatives/realpoc) (public source). Never commit keys or local data.
 
-**Delivery status:** the sample app is live at [school-portal-yi3f.onrender.com](https://school-portal-yi3f.onrender.com) on Render Free, with a Neon Free database and Infisical production keyrings. The browser SDK is also served at `/sdk/browser-sdk.js`. npm publication, a verified sender domain, backup/restore evidence, and production security acceptance remain pending. Resend's test sender can send only to the account owner's address. Do not enter real family or student data until the release requirements are met. This repository is not a certification that the earlier production incidents are resolved.
+**Delivery status:** the sample app is live at [school-portal-yi3f.onrender.com](https://school-portal-yi3f.onrender.com) on Render Free, with a Neon Free database and Infisical production keyrings. The [browser SDK is published on npm](https://www.npmjs.com/package/@ganeshcreatives/browser-sdk) and is also served at `/sdk/browser-sdk.js`. A verified sender domain, backup/restore evidence, and production security acceptance remain pending. Resend's test sender can send only to the account owner's address. Do not enter real family or student data until the release requirements are met. This repository is not a certification that the earlier production incidents are resolved.
 
 ## Start locally on Windows
 
@@ -65,7 +65,7 @@ Sign in again with that account to review applications. There are no seeded pass
 npm run pack:sdk
 ```
 
-Package: `artifacts\ganeshcreatives-browser-sdk-1.0.0.tgz`. Install from that file in another application. The hosted app also serves an ESM SDK module at [the public SDK URL](https://school-portal-yi3f.onrender.com/sdk/browser-sdk.js); TypeScript declarations remain in the npm package. See `docs/HOSTING.md` for free public hosting/publication. The package uses the owned `@ganeshcreatives` scope; npm publication is a separate release step.
+Install the [public npm package](https://www.npmjs.com/package/@ganeshcreatives/browser-sdk) with `npm i @ganeshcreatives/browser-sdk`. A local package is available at `artifacts\ganeshcreatives-browser-sdk-1.0.0.tgz`. The hosted app also serves an ESM SDK module at [the public SDK URL](https://school-portal-yi3f.onrender.com/sdk/browser-sdk.js); TypeScript declarations are in the npm package. See `docs/HOSTING.md` for hosting and publishing details.
 
 ## Documentation
 

@@ -2,7 +2,7 @@
 
 ## What is available now
 
-The app runs locally and at [the public Render demo](https://school-portal-yi3f.onrender.com). The SDK is a distributable `.tgz` package and is served as an ESM module by the hosted app. The public source repository is `ganeshcreatives/realpoc`. Render Free, Neon Free (Singapore), the Infisical School Portal project and a Resend sending key are provisioned. Public npm publication and a verified email domain remain pending. Resend's test sender is restricted to the account owner's address. Secret values belong in provider dashboards, never in chat or Git.
+The app runs locally and at [the public Render demo](https://school-portal-yi3f.onrender.com). The [SDK is published on npm](https://www.npmjs.com/package/@ganeshcreatives/browser-sdk) as version 1.0.0 and is also served as an ESM module by the hosted app. The public source repository is `ganeshcreatives/realpoc`. Render Free, Neon Free (Singapore), the Infisical School Portal project and a Resend sending key are provisioned. A verified email domain remains pending. Resend's test sender is restricted to the account owner's address. Secret values belong in provider dashboards, never in chat or Git.
 
 ## Suggested free starting deployment
 
@@ -76,7 +76,7 @@ Health check: `/health/ready` checks the database and private API. `/health/live
 
 ## 5. Publish the SDK for free
 
-The SDK is named `@ganeshcreatives/browser-sdk` under the owned npm account. Keep the package version synchronized with the app dependency.
+The SDK is published as `@ganeshcreatives/browser-sdk@1.0.0` under the owned npm account. Keep future package versions synchronized with the app dependency. To prepare a future version, update its version and release notes, then:
 
 ```powershell
 npm run pack:sdk

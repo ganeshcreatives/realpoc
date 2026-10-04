@@ -13,7 +13,7 @@ On 4 October 2026, `scripts/Smoke.ps1` passed against the running local integrat
 | Item | Current state | Required evidence/configuration |
 |---|---|---|
 | .NET 10 | Installed locally; release builds pass | Patch policy and compatible runtime on host |
-| SDK | Built, packed, and served from the public app | npm publication under `@ganeshcreatives` |
+| SDK | Published publicly as `@ganeshcreatives/browser-sdk@1.0.0`, packed, and served from the public app | Verify compatibility for each future release |
 | React/BFF/API | Deployed on Render Free; public page and SDK returned HTTP 200 | Full real-host behavior and security verification; free service cold-start availability |
 | Infisical | Production keyrings and Viewer machine identity configured; app startup succeeded | Restrict identity beyond project-wide Viewer if plan permits, test revocation and rotation |
 | Hosted database | Neon Free PostgreSQL in Singapore; initial migration and readiness check succeeded | Separate runtime/migration roles, TLS evidence, backup/restore exercise |

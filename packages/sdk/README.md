@@ -14,4 +14,4 @@ After a reload call `restore()` once. Handle `SESSION_REQUIRED`/`SESSION_EXPIRED
 
 Keys remain in tab memory. The browser signing value is visible to the user and to injected scripts. It is not an API service secret, identity proof, or replacement for API authorization. The SDK never receives API access tokens, allows arbitrary destinations, or forwards credentials to other origins.
 
-The package uses the owned `@ganeshcreatives` npm scope. The SDK can be built and packed locally; public npm publication is a separate release step.
+Install the public package with `npm i @ganeshcreatives/browser-sdk`. The SDK can also be built and packed locally.
