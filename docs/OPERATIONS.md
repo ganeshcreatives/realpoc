@@ -10,6 +10,8 @@ Open [Render → school-portal → Logs](https://dashboard.render.com/web/srv-db
 
 Windows: `scripts/Setup.ps1`, `scripts/Start.ps1`, `scripts/Stop.ps1`. Startup records process IDs and start times, so shutdown checks identity before stopping processes. Local stdout/stderr are `.local/api.log`, `.local/api.error.log`, `.local/bff.log` and `.local/bff.error.log`. Do not attach `.local` to support tickets: it contains secrets, the database, PII and verification links.
 
+Run `scripts/SigningMatrix.ps1` against the local loopback app after security changes. It creates a disposable local account, exercises 39 current-contract cases across the browser/BFF and BFF/API boundaries, and exits nonzero on a failed case. It cannot target the public deployment. `scripts/Smoke.ps1` separately checks ownership, staff authorization, application writes and version conflicts. The old signing PoC's 38 rows are not an exact contract for this app: it includes disabled/shadow API modes, Echo, and an unsigned upload exception that this project intentionally does not expose. Both scripts need to pass before deployment; use real-host checks for deployment-specific behavior.
+
 Use only `http://localhost:5080` for the local integrated application. HTTPS is required outside loopback development. The current host has project-local SDK 10.0.401; commands use its full path so an existing global .NET 9 installation is not replaced.
 
 ## Database migrations

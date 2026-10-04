@@ -116,7 +116,21 @@ app.MapMethods("/api-proxy/{**path}", ["GET","POST","PUT","PATCH","DELETE","OPTI
 });
 app.MapFallback(async ctx =>
 {
-    if (ctx.Request.Method != "GET" || ctx.Request.Path.StartsWithSegments("/api-proxy") || Path.HasExtension(ctx.Request.Path)) { await HttpPipeline.WriteProblem(ctx,404,"ROUTE_NOT_FOUND"); return; }
+    if (ctx.Request.Path.StartsWithSegments("/api-proxy"))
+    {
+        var path = ctx.Request.Path.Value!["/api-proxy".Length..];
+        string[] allowed = path is "/auth/register" or "/auth/login" or "/auth/verify" or "/auth/forgot" or "/auth/reset" or "/session/context"
+            ? ["POST"] : AllowedMethods(path);
+        if (allowed.Length > 0)
+        {
+            ctx.Items["SafeRoute"] = SafeRoute(path);
+            ctx.Response.Headers.Allow = string.Join(", ", allowed);
+            await HttpPipeline.WriteProblem(ctx,405,"METHOD_NOT_ALLOWED");
+        }
+        else await HttpPipeline.WriteProblem(ctx,404,"ROUTE_NOT_FOUND");
+        return;
+    }
+    if (ctx.Request.Method != "GET" || Path.HasExtension(ctx.Request.Path)) { await HttpPipeline.WriteProblem(ctx,404,"ROUTE_NOT_FOUND"); return; }
     var index = Path.Combine(app.Environment.WebRootPath ?? Path.Combine(app.Environment.ContentRootPath,"wwwroot"),"index.html");
     if (!File.Exists(index)) { await HttpPipeline.WriteProblem(ctx,503,"FRONTEND_NOT_BUILT"); return; }
     ctx.Response.ContentType = "text/html"; await ctx.Response.SendFileAsync(index);
