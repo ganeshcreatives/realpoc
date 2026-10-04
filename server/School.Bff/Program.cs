@@ -38,6 +38,7 @@ app.MapMethods("/api-proxy/{**path}", ["GET","POST","PUT","PATCH","DELETE","OPTI
 {
     Crypto.SafeTarget(ctx.Request);
     var path = ctx.Request.Path.Value!["/api-proxy".Length..]; var method = ctx.Request.Method;
+    ctx.Items["SafeRoute"] = SafeRoute(path);
     var isAuth = new[] { "/auth/register", "/auth/login", "/auth/verify", "/auth/forgot", "/auth/reset" }.Contains(path);
     var isContext = path == "/session/context";
     var allowed = isAuth || isContext ? new[] { "POST" } : AllowedMethods(path);
@@ -176,6 +177,15 @@ static string[] AllowedMethods(string path)
     if (path is "/api/students" or "/api/applications") return ["GET","POST"];
     if (path == "/api/logout" || Regex.IsMatch(path,"^/api/staff/applications/[a-fA-F0-9-]{36}/[a-fA-F0-9-]{36}/decision$")) return ["POST"];
     return [];
+}
+static string SafeRoute(string path)
+{
+    if (path is "/auth/register" or "/auth/login" or "/auth/verify" or "/auth/forgot" or "/auth/reset"
+        or "/session/context" or "/api/me" or "/api/schools" or "/api/students"
+        or "/api/applications" or "/api/staff/applications" or "/api/logout") return "/api-proxy" + path;
+    if (Regex.IsMatch(path,"^/api/students/[a-fA-F0-9-]{36}/balance$")) return "/api-proxy/api/students/{id}/balance";
+    if (Regex.IsMatch(path,"^/api/staff/applications/[a-fA-F0-9-]{36}/[a-fA-F0-9-]{36}/decision$")) return "/api-proxy/api/staff/applications/{id}/{studentId}/decision";
+    return "/api-proxy/unmatched";
 }
 static T Deserialize<T>(byte[] bytes)
 {

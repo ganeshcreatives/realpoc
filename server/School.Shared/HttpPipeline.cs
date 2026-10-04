@@ -22,6 +22,11 @@ public static class HttpPipeline
             deadline.CancelAfter(TimeSpan.FromSeconds(requestTimeoutSeconds));
             ctx.RequestAborted = deadline.Token;
             ctx.TraceIdentifier = Guid.NewGuid().ToString("N");
+            // The API records the BFF-generated trace as a parent for cross-process
+            // diagnosis. It never replaces the API's own server-generated trace.
+            var parentTrace = app.Configuration.GetValue("Logging:AcceptParentCorrelation", false)
+                ? ctx.Request.Headers["X-Correlation-Id"].ToString() : "";
+            if (parentTrace.Length != 32 || !parentTrace.All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f')) parentTrace = "-";
             ctx.Response.Headers["X-Correlation-Id"] = ctx.TraceIdentifier;
             ctx.Response.Headers["X-SC-Server-Time"] = Crypto.Now.ToString();
             ctx.Response.Headers.CacheControl = "no-store";
@@ -47,15 +52,15 @@ public static class HttpPipeline
                 };
                 ctx.RequestAborted = callerAborted;
                 if (!ctx.Response.HasStarted) await WriteProblem(ctx, status, code);
-                app.Logger.LogWarning("Request rejected {Code} {Trace}", code, ctx.TraceIdentifier);
+                app.Logger.LogWarning("Request rejected {Code} {Method} {Route} {Trace} {ParentTrace}", code,
+                    ctx.Request.Method, SafeRoute(ctx), ctx.TraceIdentifier, parentTrace);
             }
             finally
             {
                 ctx.RequestAborted = callerAborted;
                 // Only route templates, status, duration and server-generated correlation IDs.
-                app.Logger.LogInformation("HTTP {Method} {Route} {Status} {ElapsedMs} {Trace}", ctx.Request.Method,
-                    (ctx.GetEndpoint() as Microsoft.AspNetCore.Routing.RouteEndpoint)?.RoutePattern.RawText ?? "unmatched",
-                    ctx.Response.StatusCode, started.ElapsedMilliseconds, ctx.TraceIdentifier);
+                app.Logger.LogInformation("HTTP {Method} {Route} {Status} {ElapsedMs} {Trace} {ParentTrace}", ctx.Request.Method,
+                    SafeRoute(ctx), ctx.Response.StatusCode, started.ElapsedMilliseconds, ctx.TraceIdentifier, parentTrace);
             }
         });
         app.UseStatusCodePages(async status =>
@@ -64,6 +69,9 @@ public static class HttpPipeline
             await WriteProblem(status.HttpContext, code, code == 405 ? "METHOD_NOT_ALLOWED" : "ROUTE_NOT_FOUND");
         });
     }
+    private static string SafeRoute(HttpContext ctx) => ctx.Items["SafeRoute"] as string
+        ?? (ctx.GetEndpoint() as Microsoft.AspNetCore.Routing.RouteEndpoint)?.RoutePattern.RawText
+        ?? "unmatched";
     public static Task WriteProblem(HttpContext ctx, int status, string code)
     {
         ctx.Response.StatusCode = status;

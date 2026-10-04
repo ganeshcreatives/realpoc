@@ -2,6 +2,12 @@
 
 ## Start, stop and logs
 
+### Hosted failure and tamper logs
+
+Open [Render → school-portal → Logs](https://dashboard.render.com/web/srv-db11l8mgekts73bp3ag0/logs). Select the application logs and a time range covering the incident. Search for `Request rejected`, then filter by a code such as `SIGNATURE_INVALID`, `TIMESTAMP_SKEW`, `REPLAY_DETECTED`, `CLIENT_UNKNOWN`, `CSRF_ORIGIN`, `RATE_LIMITED`, `UPSTREAM_TIMEOUT`, or `SECURITY_STATE_UNAVAILABLE`. A rejection entry contains its code, HTTP method, sanitized route, server-generated trace ID and, for API requests, the BFF trace as `ParentTrace`. Search the BFF trace ID from the browser's `X-Correlation-Id` response header to find the BFF line and matching API `ParentTrace` line. The BFF and API share this Render service, so both processes write to the same log view; the API is private on container loopback. A BFF timeout may have a matching API line with a later completion time.
+
+`SIGNATURE_INVALID` means verification failed; it does not by itself prove an attacker. Stale browser state, a copied request, or intentional modification can all cause it. `REPLAY_DETECTED` means the same signed request ID was claimed already. `SESSION_EXPIRED` after inactivity is expected. Look for repeated patterns and correlated failures before classifying an incident. Render Free logs are for immediate diagnosis, not a durable security audit. Export or retain them in an approved log service before relying on them for incident history. Avoid recording or sharing request bodies, cookies, signatures, keys, email addresses, or full URLs in support tickets. A user can supply the response's correlation ID and approximate time instead.
+
 Windows: `scripts/Setup.ps1`, `scripts/Start.ps1`, `scripts/Stop.ps1`. Startup records process IDs and start times, so shutdown checks identity before stopping processes. Local stdout/stderr are `.local/api.log`, `.local/api.error.log`, `.local/bff.log` and `.local/bff.error.log`. Do not attach `.local` to support tickets: it contains secrets, the database, PII and verification links.
 
 Use only `http://localhost:5080` for the local integrated application. HTTPS is required outside loopback development. The current host has project-local SDK 10.0.401; commands use its full path so an existing global .NET 9 installation is not replaced.
