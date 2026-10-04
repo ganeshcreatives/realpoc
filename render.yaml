@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: school-portal
+    runtime: docker
+    plan: free
+    healthCheckPath: /health/ready
+    envVars:
+      - key: PublicOrigin
+        sync: false
+      - key: Database__Connection
+        sync: false
+      - key: Secrets__Provider
+        value: Infisical
+      - key: Infisical__Url
+        value: https://us.infisical.com
+      - key: Infisical__ClientId
+        sync: false
+      - key: Infisical__ClientSecret
+        sync: false
+      - key: Infisical__ProjectId
+        sync: false
+      - key: Infisical__Environment
+        value: prod
+      - key: Mail__Mode
+        value: Resend
+      - key: Mail__From
+        sync: false
+      - key: Mail__ApiKey
+        sync: false

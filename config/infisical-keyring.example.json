@@ -1,0 +1,11 @@
+{
+  "activeKeyId": "school-prod-v1",
+  "keys": [
+    {
+      "clientId": "sc-bff-main",
+      "keyId": "school-prod-v1",
+      "secret": "REPLACE_WITH_BASE64_OF_32_RANDOM_BYTES"
+    }
+  ],
+  "sessionEncryptionKey": "BFF_ONLY_REPLACE_WITH_A_DIFFERENT_32_BYTE_BASE64_KEY"
+}

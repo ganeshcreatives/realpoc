@@ -1,0 +1,8 @@
+.git
+.local
+.tools
+**/node_modules
+**/bin
+**/obj
+server/School.Bff/wwwroot
+artifacts

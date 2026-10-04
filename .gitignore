@@ -1,0 +1,11 @@
+node_modules/
+dist/
+bin/
+obj/
+.tools/
+.local/
+.env
+*.tgz
+artifacts/
+server/School.Bff/wwwroot/
+!server/School.Bff/wwwroot/.gitkeep
