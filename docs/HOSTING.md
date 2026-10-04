@@ -76,12 +76,12 @@ Health check: `/health/ready` checks the database and private API. `/health/live
 
 ## 5. Publish the SDK for free
 
-Choose an npm scope you own. Replace `@school-portal/browser-sdk` in `packages/sdk/package.json`, the web dependency, the root scripts, SDK README and React import; regenerate the lockfile with `npm install`. Keep the package version synchronized with the app dependency.
+The SDK is named `@ganeshcreatives/browser-sdk` under the owned npm account. Keep the package version synchronized with the app dependency.
 
 ```powershell
 npm run pack:sdk
 npm login
-npm publish --workspace '@YOUR_SCOPE/browser-sdk' --access public
+npm publish --workspace '@ganeshcreatives/browser-sdk' --access public
 ```
 
 Use npm's supported authentication/2FA or trusted publishing process. Never commit npm tokens. Public publication exposes SDK source/contracts but not BFF/API secrets. Review the tarball before release. The existing SDK `.tgz` contains only compiled JavaScript, types, README and package metadata.

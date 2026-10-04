@@ -2,9 +2,9 @@
   "name": "school-portal", "version": "1.0.0", "private": true,
   "workspaces": ["packages/sdk", "apps/web"],
   "scripts": {
-    "build": "npm run build -w @school-portal/browser-sdk && npm run build -w @school-portal/web && node scripts/copy-sdk.mjs",
-    "dev": "npm run build -w @school-portal/browser-sdk && npm run dev -w @school-portal/web",
-    "pack:sdk": "npm run build -w @school-portal/browser-sdk && npm pack -w @school-portal/browser-sdk --pack-destination artifacts"
+    "build": "npm run build -w @ganeshcreatives/browser-sdk && npm run build -w @school-portal/web && node scripts/copy-sdk.mjs",
+    "dev": "npm run build -w @ganeshcreatives/browser-sdk && npm run dev -w @school-portal/web",
+    "pack:sdk": "npm run build -w @ganeshcreatives/browser-sdk && npm pack -w @ganeshcreatives/browser-sdk --pack-destination artifacts"
   },
   "engines": { "node": ">=22.12.0" }
 }

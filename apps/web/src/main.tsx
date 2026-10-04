@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { SchoolClient, SchoolError, type User, type Student, type School, type SchoolApplication, type StaffApplication, type Balance, type RequestEvent } from '@school-portal/browser-sdk';
+import { SchoolClient, SchoolError, type User, type Student, type School, type SchoolApplication, type StaffApplication, type Balance, type RequestEvent } from '@ganeshcreatives/browser-sdk';
 import './styles.css';
 
 const messages: Record<string,string> = {

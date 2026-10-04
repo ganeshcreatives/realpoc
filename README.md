@@ -65,7 +65,7 @@ Sign in again with that account to review applications. There are no seeded pass
 npm run pack:sdk
 ```
 
-Package: `artifacts\school-portal-browser-sdk-1.0.0.tgz`. Install from that file in another application. The built app also serves an ESM SDK module at `/sdk/browser-sdk.js`; JavaScript declarations remain in the npm package. See `docs/HOSTING.md` for free public hosting/publication. `@school-portal` is a placeholder scope, not a claimed npm account.
+Package: `artifacts\ganeshcreatives-browser-sdk-1.0.0.tgz`. Install from that file in another application. The built app also serves an ESM SDK module at `/sdk/browser-sdk.js`; JavaScript declarations remain in the npm package. See `docs/HOSTING.md` for free public hosting/publication. The package uses the owned `@ganeshcreatives` scope; npm publication is a separate release step.
 
 ## Documentation
 

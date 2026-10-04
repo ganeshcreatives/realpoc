@@ -1,6 +1,7 @@
 {
-  "name":"@school-portal/browser-sdk", "version":"1.0.0", "description":"Typed same-origin School Portal client with per-session request signing", "type":"module",
+  "name":"@ganeshcreatives/browser-sdk", "version":"1.0.0", "description":"Typed same-origin School Portal client with per-session request signing", "type":"module",
   "files":["dist","README.md"], "main":"./dist/index.js", "types":"./dist/index.d.ts",
+  "repository":{"type":"git","url":"https://github.com/ganeshcreatives/realpoc","directory":"packages/sdk"},
   "exports":{".":{"types":"./dist/index.d.ts","import":"./dist/index.js"}},
   "sideEffects":false, "publishConfig":{"access":"public"},
   "scripts":{"build":"tsc -p tsconfig.json"}, "devDependencies":{"typescript":"7.0.2"}
