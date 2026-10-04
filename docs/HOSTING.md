@@ -2,7 +2,7 @@
 
 ## What is available now
 
-The app runs locally and the SDK is a distributable `.tgz` package. The public source repository is `ganeshcreatives/realpoc`. The hosted app, npm package, database, domain, email service and Infisical project still need provisioning. Secret values belong in provider dashboards, never in chat or Git.
+The app runs locally and at [the public Render demo](https://school-portal-yi3f.onrender.com). The SDK is a distributable `.tgz` package and is served as an ESM module by the hosted app. The public source repository is `ganeshcreatives/realpoc`. Render Free, Neon Free (Singapore), the Infisical School Portal project and a Resend sending key are provisioned. Public npm publication and a verified email domain remain pending. Resend's test sender is restricted to the account owner's address. Secret values belong in provider dashboards, never in chat or Git.
 
 ## Suggested free starting deployment
 
@@ -20,26 +20,26 @@ Provider details checked 4 October 2026: [Render free service restrictions](http
 
 ## 1. Create owned resources
 
-Use the existing Git repository under your account. Create a Neon project, an Infisical project with a `prod` environment, and a Resend account with a verified sender. Keep development and production secrets/databases separate. A production email domain is needed to send to arbitrary users; a provider sandbox sender may permit only your own address.
+Use the existing Git repository under your account. The Neon `school-portal` project and Infisical `School Portal` project with a `prod` environment are created. Keep development and production secrets/databases separate. A verified email domain is still needed to send to arbitrary users; the current Resend test sender permits only the account owner's address.
 
 The repository is published with `.local`, `.tools`, `node_modules`, artifacts and database files excluded. Keep those paths out of future commits.
 
 ## 2. Store signing secrets in Infisical
 
-Generate new production key material in a protected local directory:
+The two production keyrings are already stored as JSON-valued secrets in the Infisical `prod` environment. To rotate them later, generate new key material in a protected local directory:
 
 ```powershell
 .\scripts\New-Keyring.ps1 -OutputDirectory '.local\production-key-transfer'
 ```
 
-Create two JSON-valued secrets at path `/` in the `prod` environment:
+Store two JSON-valued secrets at path `/` in the `prod` environment:
 
 - `SCHOOL_BFF_KEYRING`: contents of the generated BFF file, including the session encryption key.
 - `SCHOOL_API_KEYRING`: contents of the generated API file. Its `sessionEncryptionKey` is empty.
 
 Both share the service HMAC key and key/client identifiers. Session encryption uses a different random key. The browser never contacts Infisical and never receives either keyring.
 
-Create a machine identity with read-only access to these specific secrets/environment. Enable Universal Auth and put its client ID/secret and project ID into the host's secret settings. The integration logs in at `/api/v1/auth/universal-auth/login`, then reads the named secret at `/api/v4/secrets/{name}`. Use the correct Infisical region/base URL. The files are a transfer mechanism, not a production key backup policy; store a protected recovery copy under your operational process.
+The `school-portal-render-prod` machine identity has the project's Viewer role and Universal Auth. Its client ID/secret and project ID are in Render's private environment settings. Viewer is read-only across this project; it is not limited to only the two named secrets or only `prod`. The integration logs in at `/api/v1/auth/universal-auth/login`, then reads the named secret at `/api/v4/secrets/{name}`. Use the correct Infisical region/base URL. The files are a transfer mechanism, not a production key backup policy; store a protected recovery copy under your operational process.
 
 The combined free container uses one bootstrap identity/environment for two processes. Separate paid hosts should use two identities: API can read only API verifier keys; BFF can read only its signing/session keyring. This application uses Infisical to store/retrieve secrets, not a remote HSM signing API. SHA-256 payload hashing needs no secret at all; HMAC signing does.
 
@@ -59,7 +59,7 @@ Set these private environment values:
 | `Infisical__ProjectId` | Your project ID |
 | `Infisical__Environment` | `prod` |
 | `Mail__Mode` | `Resend` |
-| `Mail__From` | Verified sender, e.g. `School Portal <portal@your-domain>` |
+| `Mail__From` | Current test sender `onboarding@resend.dev`; replace with a verified sender for public users |
 | `Mail__ApiKey` | Restricted sending key |
 
 The launch script selects Postgres, points the BFF at loopback API and respects Render's `PORT`. Database and email credentials are host secrets; optionally sync them from Infisical using your provider integration. They are not stored in the browser bundle.
@@ -68,7 +68,7 @@ Standard SMTP ports are blocked on Render free services, so the supplied bluepri
 
 ## 4. Apply migrations deliberately
 
-For an empty database, set `INITIALIZE_DATABASE=true` for the first controlled deployment. The API applies the committed PostgreSQL migrations before either server starts. After the first successful deployment, remove the flag. Normal restarts must not be schema changes.
+The initial deployment used `INITIALIZE_DATABASE=true` and the flag was removed after the migration succeeded. For a new empty database, set the flag only for its first controlled deployment, then remove it. Normal restarts must not be schema changes.
 
 For later releases, back up the database, review the migration SQL, and apply with a temporary migration identity in a separate deployment job. The runtime identity should not own schema changes. The first-deploy shortcut shares credentials; narrow those permissions after provisioning.
 

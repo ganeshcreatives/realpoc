@@ -13,15 +13,17 @@ On 4 October 2026, `scripts/Smoke.ps1` passed against the running local integrat
 | Item | Current state | Required evidence/configuration |
 |---|---|---|
 | .NET 10 | Installed locally; release builds pass | Patch policy and compatible runtime on host |
-| SDK | Built and packed locally | Owned npm scope/repository, reviewed public package, publication |
-| React/BFF/API | Built locally | Public deployment and real-host behavior verification |
-| Infisical | Adapter implemented | Actual project/identity, least-privilege access, startup/revocation exercise |
-| Hosted database | PostgreSQL provider and migration history included | Real PostgreSQL execution, TLS, runtime permissions, backup/restore exercise |
-| Email | Protected local mail files + Resend/SMTP adapters | Verified sender/domain, delivery verification, bounce/abuse policy |
+| SDK | Built, packed, and served from the public app | npm publication under `@ganeshcreatives` |
+| React/BFF/API | Deployed on Render Free; public page and SDK returned HTTP 200 | Full real-host behavior and security verification; free service cold-start availability |
+| Infisical | Production keyrings and Viewer machine identity configured; app startup succeeded | Restrict identity beyond project-wide Viewer if plan permits, test revocation and rotation |
+| Hosted database | Neon Free PostgreSQL in Singapore; initial migration and readiness check succeeded | Separate runtime/migration roles, TLS evidence, backup/restore exercise |
+| Email | Resend sending key configured with test sender | Verified domain, delivery verification, bounce/abuse policy |
 | Security acceptance | Local integration smoke passed; independent review pending | Remaining negative/concurrency/end-to-end checks listed below |
 | Availability | One-container free deployment configuration | Explicit service objectives; redundancy if required |
 | Real school data | Sample school catalog, new parent-owned profiles, zero balances | Approved school catalog, parent relationship validation, privacy and retention rules |
 | Privileged accounts | Explicit operator staff grant | Organization's MFA/SSO requirement and lifecycle controls |
+
+The first public readiness check returned HTTP 200. After a redeploy, one check briefly returned HTTP 504 during restart and the next returned HTTP 200. Cold starts and this transient failure remain availability limits of the free deployment.
 
 ## Acceptance cases to execute before production
 
