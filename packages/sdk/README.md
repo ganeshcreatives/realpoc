@@ -14,4 +14,6 @@ After a reload call `restore()` once. Handle `SESSION_REQUIRED`/`SESSION_EXPIRED
 
 Keys remain in tab memory. The browser signing value is visible to the user and to injected scripts. It is not an API service secret, identity proof, or replacement for API authorization. The SDK never receives API access tokens, allows arbitrary destinations, or forwards credentials to other origins.
 
+The SDK always generates the browser request signature for authenticated calls. It does not verify requests or choose the server's enforcement level. The BFF independently chooses `Verification__Browser=Off|Shadow|Enforce`; the private API independently chooses `Verification__Service=Off|Shadow|Enforce`. An unsigned custom caller can be useful for isolated local testing, but the published SDK needs no mode switch and remains compatible with all three server modes. Production processes require Enforce.
+
 Install the public package with `npm i @ganeshcreatives/browser-sdk`. The SDK can also be built and packed locally. Licensed under MIT; see `LICENSE` in this package.

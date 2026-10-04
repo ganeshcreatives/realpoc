@@ -15,12 +15,17 @@ builder.Services.AddSingleton<AccountMail>();
 builder.Logging.AddFilter("Microsoft.AspNetCore", LogLevel.Warning);
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);
 var keys = await KeyRing.Load(builder.Configuration, false);
+var serviceVerification = SignatureVerification.Configure(builder.Configuration, builder.Environment, "Service");
+var realDataEnabled = DeploymentPolicy.RealDataEnabled(builder.Configuration, builder.Environment);
 if (!builder.Environment.IsDevelopment())
 {
     var mode = builder.Configuration["Mail:Mode"];
     if (mode is not ("Smtp" or "Resend") || string.IsNullOrWhiteSpace(builder.Configuration["Mail:From"]) || (mode == "Smtp" && string.IsNullOrWhiteSpace(builder.Configuration["Mail:Host"])) || (mode == "Resend" && string.IsNullOrWhiteSpace(builder.Configuration["Mail:ApiKey"]))) throw new InvalidOperationException("Production requires configured email delivery.");
 }
 var app = builder.Build();
+if (serviceVerification != SignatureVerificationMode.Enforce)
+    app.Logger.LogWarning("Service signature verification is {Mode}; use only on isolated test data", serviceVerification);
+if (!realDataEnabled) app.Logger.LogWarning("Demo-only mode: real-data writes are disabled");
 app.UseSafeErrors();
 // Database creation is an explicit operator command, never performed by a running web service.
 if (args.Contains("--migrate-db"))
@@ -52,13 +57,18 @@ app.Use(async (ctx, next) =>
     if (ctx.Request.Path.StartsWithSegments("/health")) { await next(ctx); return; }
     Crypto.SafeTarget(ctx.Request);
     var body = await Crypto.Body(ctx.Request, ctx.RequestAborted); ctx.Items["body"] = body;
-    var client = Crypto.Header(ctx.Request, "X-Client-Id"); var keyId = Crypto.Header(ctx.Request, "X-Key-Id");
-    var key = keys.Keys.SingleOrDefault(k => k.KeyId == keyId && k.ClientId == client) ?? throw new Rejection(403, "CLIENT_UNKNOWN");
-    if (Crypto.Header(ctx.Request, "X-Signature-Version") != "2") throw new Rejection(403, "SIGNATURE_INVALID");
-    Crypto.Verify(ctx.Request, body, Convert.FromBase64String(key.Secret), true, client);
     var db = ctx.RequestServices.GetRequiredService<SchoolDb>();
-    await db.Claim("service:" + client, Crypto.Header(ctx.Request, "X-Request-Id"), ctx.RequestAborted);
-    await db.Limit("api:" + client, 1200, 60, ctx.RequestAborted);
+    string? verifiedClient = null;
+    await SignatureVerification.CheckAsync(serviceVerification,ctx,app.Logger,"Service",async () =>
+    {
+        var client = Crypto.Header(ctx.Request, "X-Client-Id"); var keyId = Crypto.Header(ctx.Request, "X-Key-Id");
+        var key = keys.Keys.SingleOrDefault(k => k.KeyId == keyId && k.ClientId == client) ?? throw new Rejection(403, "CLIENT_UNKNOWN");
+        if (Crypto.Header(ctx.Request, "X-Signature-Version") != "2") throw new Rejection(403, "SIGNATURE_INVALID");
+        Crypto.Verify(ctx.Request, body, Convert.FromBase64String(key.Secret), true, client);
+        verifiedClient = client;
+        await db.Claim("service:" + client, Crypto.Header(ctx.Request, "X-Request-Id"), ctx.RequestAborted);
+    });
+    await db.Limit("api:" + (verifiedClient ?? "unverified"), 1200, 60, ctx.RequestAborted);
     if (!ctx.Request.Path.StartsWithSegments("/auth"))
     {
         var token = ctx.Request.Headers.Authorization.ToString();
@@ -69,6 +79,7 @@ app.Use(async (ctx, next) =>
         if (ctx.Request.Path.StartsWithSegments("/api/staff") && account.Role != "staff") throw new Rejection(403, "ACCESS_DENIED");
         if (!ctx.Request.Path.StartsWithSegments("/api/staff") && account.Role != "parent" && ctx.Request.Method != "GET" && ctx.Request.Path != "/api/logout") throw new Rejection(403, "ACCESS_DENIED");
     }
+    if (!realDataEnabled && DeploymentPolicy.IsDemoWrite(ctx.Request)) throw new Rejection(403, "DEMO_READ_ONLY");
     await next(ctx);
 });
 

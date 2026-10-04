@@ -11,6 +11,12 @@ services:
         sync: false
       - key: Secrets__Provider
         value: Infisical
+      - key: Verification__Browser
+        value: Enforce
+      - key: Verification__Service
+        value: Enforce
+      - key: Deployment__RealDataEnabled
+        value: 'false'
       - key: Infisical__Url
         value: https://us.infisical.com
       - key: Infisical__ClientId

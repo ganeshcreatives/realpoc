@@ -68,6 +68,20 @@ flowchart TD
 
 Signatures compare decoded 32-byte values with constant-time equality. Timestamps allow ±5 minutes. Replay IDs live for 10 minutes after acceptance and are claimed using a unique SQL insert, never a read-then-write race. Browser replay scope is the actual session hash. Service scope is the authenticated client identity. Required database failures stop requests; no in-memory fallback is used.
 
+### Signature verification modes
+
+`Verification__Browser` controls the browser → BFF signature and replay checks. `Verification__Service` controls the BFF → API signature and replay checks. Each accepts `Off`, `Shadow`, or `Enforce` (case insensitive); an omitted setting means `Enforce`.
+
+| Mode | Signature and replay behavior | Intended use |
+|---|---|---|
+| Off | Skip those checks entirely. | Isolated local development or API tooling. |
+| Shadow | Check them; log a safe `Signature shadow` line with hop, reason, method, route template and trace; continue when they fail. | Isolated staging rollout and compatibility observation. |
+| Enforce | Reject missing, invalid, stale and replayed signatures. | Production and security acceptance. |
+
+Both processes refuse to start in `Production` when their respective mode is `Off` or `Shadow`. The browser SDK signs requests in every mode; it does not verify incoming requests. An unsigned custom client can call a non-production Off/Shadow BFF only with a valid browser session. In Off/Shadow, an unsigned direct API request still requires a valid user token and role/ownership checks. **Neither mode is suitable for a publicly reachable service holding real data**: a stolen token could be used without proof that the BFF sent the request. Origin/CSRF rules, bounded bodies, session validation, rate limits, user authentication and authorization remain enforced in every mode. Database failures still fail closed. Never log signatures, tokens, keys, cookies or bodies during shadow observation.
+
+Local example: set `$env:Verification__Browser='Shadow'` and `$env:Verification__Service='Shadow'` before running `scripts/Start.ps1`; clear both variables after stopping the services. The hosted Render deployment remains `Enforce` by default.
+
 POST login/register/verify/forgot/reset and local session-context recovery require exact configured Origin. They are the only browser-signature exceptions. API authentication endpoints still require the BFF service signature. CORS is not enabled. Unsafe writes require Origin plus the authenticated request signature; cookies are SameSite=Strict. The hosted cookie is `__Host-sc_session_main`, Secure, HttpOnly, Path=/, with no Domain. Local HTTP uses explicitly separate `sc_dev_session` cookies on loopback only.
 
 ## Identity and sessions

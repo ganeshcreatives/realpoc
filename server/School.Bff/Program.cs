@@ -21,11 +21,17 @@ builder.Logging.AddFilter("Microsoft.AspNetCore", LogLevel.Warning);
 builder.Logging.AddFilter("System.Net.Http.HttpClient", LogLevel.None);
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);
 var keys = await KeyRing.Load(builder.Configuration, true);
+var browserVerification = SignatureVerification.Configure(builder.Configuration, builder.Environment, "Browser");
+var realDataEnabled = DeploymentPolicy.RealDataEnabled(builder.Configuration, builder.Environment);
 var cookieName = origin.Scheme == "https" ? "__Host-sc_session_main" : "sc_dev_session";
 var app = builder.Build();
+if (browserVerification != SignatureVerificationMode.Enforce)
+    app.Logger.LogWarning("Browser signature verification is {Mode}; use only on isolated test data", browserVerification);
+if (!realDataEnabled) app.Logger.LogWarning("Demo-only mode: real-data writes are disabled");
 app.UseSafeErrors();
 if (origin.Scheme == "https") app.Use(async (ctx,next) => { ctx.Response.Headers.StrictTransportSecurity = "max-age=31536000"; await next(ctx); });
 app.MapGet("/health/live", () => Results.Ok(new { status = "alive" }));
+app.MapGet("/deployment/status", () => Results.Ok(new { demoOnly = !realDataEnabled }));
 app.MapGet("/health/ready", async (SchoolDb db, IHttpClientFactory clients, CancellationToken ct) =>
 {
     if (!await db.Database.CanConnectAsync(ct)) return Results.StatusCode(503);
@@ -46,6 +52,7 @@ app.MapMethods("/api-proxy/{**path}", ["GET","POST","PUT","PATCH","DELETE","OPTI
     if (!allowed.Contains(method)) { ctx.Response.Headers.Allow = string.Join(", ",allowed); throw new Rejection(405,"METHOD_NOT_ALLOWED"); }
     if (method != "GET" && ctx.Request.Headers.Origin.ToString() != origin.GetLeftPart(UriPartial.Authority)) throw new Rejection(403,"CSRF_ORIGIN");
     if (ctx.Request.Headers["Sec-Fetch-Site"].ToString() is "cross-site" or "same-site") throw new Rejection(403,"CSRF_ORIGIN");
+    if (!realDataEnabled && DeploymentPolicy.IsDemoWrite(ctx.Request)) throw new Rejection(403,"DEMO_READ_ONLY");
     // Ignore forwarded IP headers unless a reviewed deployment adds a trusted-proxy policy.
     // Behind a proxy this deliberately becomes a shared ingress limit, plus independent account/user limits.
     var source = ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown";
@@ -64,9 +71,12 @@ app.MapMethods("/api-proxy/{**path}", ["GET","POST","PUT","PATCH","DELETE","OPTI
             var user = Deserialize<UserDto>(current.Bytes);
             return Results.Ok(new ContextDto(payload.SigningKey,session.ExpiresAt,Crypto.Now,user));
         }
-        if (Crypto.Header(ctx.Request,"X-SC-App") != "main" || Crypto.Header(ctx.Request,"X-SC-Session") != "cookie") throw new Rejection(403,"CLIENT_UNKNOWN");
-        Crypto.Verify(ctx.Request,body,Convert.FromBase64String(payload.SigningKey),false,"main");
-        await db.Claim("browser:" + session.Id,Crypto.Header(ctx.Request,"X-SC-Request-Id"),ct);
+        await SignatureVerification.CheckAsync(browserVerification,ctx,app.Logger,"Browser",async () =>
+        {
+            if (Crypto.Header(ctx.Request,"X-SC-App") != "main" || Crypto.Header(ctx.Request,"X-SC-Session") != "cookie") throw new Rejection(403,"CLIENT_UNKNOWN");
+            Crypto.Verify(ctx.Request,body,Convert.FromBase64String(payload.SigningKey),false,"main");
+            await db.Claim("browser:" + session.Id,Crypto.Header(ctx.Request,"X-SC-Request-Id"),ct);
+        });
         await db.Limit("user:" + session.UserId,120,60,ct);
         await TouchSession(session,db,ct);
     }
@@ -173,12 +183,12 @@ async Task<Upstream> Send(HttpContext ctx,SchoolDb db,IHttpClientFactory clients
     if (!response.IsSuccessStatusCode)
     {
         var problem = Deserialize<ProblemDto>(bytes);
-        if (status == 403 && problem.Code != "ACCESS_DENIED") throw new Rejection(502,"BFF_SERVICE_AUTH_FAILED");
+        if (status == 403 && problem.Code is not ("ACCESS_DENIED" or "DEMO_READ_ONLY")) throw new Rejection(502,"BFF_SERVICE_AUTH_FAILED");
         if (status == 401 && session is not null)
         {
             await db.Sessions.Where(x => x.Id == session.Id).ExecuteDeleteAsync(ct); ctx.Response.Cookies.Delete(cookieName,CookieOptions(Crypto.Now)); throw new Rejection(401,"SESSION_EXPIRED");
         }
-        string[] safe = ["VALIDATION_FAILED","PASSWORD_POLICY","INVALID_CREDENTIALS","LINK_INVALID","RECORD_NOT_FOUND","ACCESS_DENIED","RATE_LIMITED","APPLICATION_ALREADY_EXISTS","IDEMPOTENCY_CONFLICT","VERSION_CONFLICT","STUDENT_LIMIT","MAIL_UNAVAILABLE"];
+        string[] safe = ["VALIDATION_FAILED","PASSWORD_POLICY","INVALID_CREDENTIALS","LINK_INVALID","RECORD_NOT_FOUND","ACCESS_DENIED","DEMO_READ_ONLY","RATE_LIMITED","APPLICATION_ALREADY_EXISTS","IDEMPOTENCY_CONFLICT","VERSION_CONFLICT","STUDENT_LIMIT","MAIL_UNAVAILABLE"];
         if (status >= 500) throw new Rejection(503,"SERVICE_UNAVAILABLE");
         if (!safe.Contains(problem.Code) || status != problem.Status) throw new Rejection(502,"UPSTREAM_RESPONSE_INVALID");
         throw new Rejection(status,problem.Code);

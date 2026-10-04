@@ -14,8 +14,16 @@ const messages: Record<string,string> = {
   NETWORK_ERROR:'We could not reach the server. Check your connection.', SERVICE_UNAVAILABLE:'The service is temporarily unavailable.', UPSTREAM_UNAVAILABLE:'The service is temporarily unavailable.',
   SECURITY_STATE_UNAVAILABLE:'The secure session service is unavailable. Please try again later.', ACCESS_DENIED:'Your account does not have permission for this action.',
   IDEMPOTENCY_CONFLICT:'This request reference was already used with different details.', VALIDATION_FAILED:'Please check the entered details.',
-  BFF_SERVICE_AUTH_FAILED:'The server could not authenticate its backend request. Please contact support with the reference below.'
+  BFF_SERVICE_AUTH_FAILED:'The server could not authenticate its backend request. Please contact support with the reference below.',
+  DEMO_READ_ONLY:'This public demo is read only. Do not submit real student information.'
 };
+function DemoBanner() {
+  const [demoOnly,setDemoOnly] = useState(true);
+  useEffect(() => { void fetch('/deployment/status',{cache:'no-store'}).then(async response => {
+    if (response.ok) setDemoOnly((await response.json() as {demoOnly:boolean}).demoOnly);
+  }).catch(() => { /* Keep the safe demo label when status cannot be checked. */ }); },[]);
+  return demoOnly ? <div className="demo-banner" role="status">Demonstration only. Do not enter real student information. Registration, student creation and applications are disabled.</div> : null;
+}
 function CampusArt() { return <svg className="campus-art" viewBox="0 0 500 310" role="img" aria-label="Illustration of a school among trees"><circle cx="385" cy="60" r="35" fill="#f3c973"/><path d="M0 280Q130 225 245 262T500 254V310H0" fill="#c7dac8"/><path d="M105 132L251 55L397 132Z" fill="#163f37"/><rect x="123" y="130" width="255" height="141" rx="3" fill="#f1e9d8"/><rect x="205" y="111" width="90" height="160" fill="#fffaf0"/><path d="M195 111L250 80L306 111" fill="#3c6d56"/><rect x="232" y="208" width="38" height="63" rx="19" fill="#23493e"/>{[147,177,314,344].map(x=><React.Fragment key={x}><rect x={x} y="155" width="18" height="27" rx="2" fill="#82a99d"/><rect x={x} y="201" width="18" height="27" rx="2" fill="#82a99d"/></React.Fragment>)}<circle cx="250" cy="145" r="17" fill="#e5c17b"/><path d="M250 134V145L258 150" stroke="#163f37" strokeWidth="3" fill="none"/><path d="M216 310L233 271H270L287 310" fill="#e8d5b2"/>{[65,437].map(x=><g key={x}><rect x={x-4} y="210" width="8" height="62" fill="#867451"/><ellipse cx={x} cy="197" rx="31" ry="46" fill="#5e8b63"/><ellipse cx={x-10} cy="176" rx="22" ry="35" fill="#7fa174"/></g>)}<path d="M250 54V19" stroke="#163f37" strokeWidth="4"/><path d="M252 20H287L278 30L287 40H252" fill="#d99058"/></svg>; }
 function App() {
   const [events,setEvents] = useState<RequestEvent[]>([]);
@@ -87,5 +95,5 @@ function Stat({number,label,detail}:{number:number;label:string;detail:string}){
 function Empty({title,text}:{title:string;text:string}){return <div className="empty"><span>✧</span><h3>{title}</h3><p>{text}</p></div>;}
 function Badge({status}:{status:string}){return <span className={'badge '+status.toLowerCase()}>{status==='Submitted'?'In review':status}</span>;}
 function StudentCard({student,balance}:{student:Student;balance?:Balance}){return <article className="student-card"><div className="student-avatar">{student.name.slice(0,1)}</div><div><h3>{student.name}</h3><p>Grade {student.grade}</p><span className="balance-label">Meal account <strong>{balance?new Intl.NumberFormat(undefined,{style:'currency',currency:balance.currency}).format(balance.balanceMinor/100):'—'}</strong></span></div></article>;}
-createRoot(document.getElementById('root')!).render(<App/>);
+createRoot(document.getElementById('root')!).render(<><DemoBanner/><App/></>);
 

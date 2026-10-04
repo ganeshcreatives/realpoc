@@ -1,5 +1,5 @@
 # Local-only, disposable signing/security probes for the current School Portal contract.
-# The older PoC's off/shadow modes, Echo, and unsigned upload route do not exist here.
+# Enforce-mode cases for the current contract. Mode transitions are covered separately.
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $bff = 'http://localhost:5080'
@@ -18,6 +18,8 @@ function Hex([byte[]]$bytes) { if ($null -eq $bytes) { $bytes = [byte[]]::new(0)
 function Invoke-Probe([string]$method, [string]$path, [string]$body = '', [hashtable]$options = @{}) {
     $target = if ($options.Api) { $api } else { $bff }
     $request = [System.Net.Http.HttpRequestMessage]::new([System.Net.Http.HttpMethod]::new($method), "$target$path")
+    # A 413 can close the socket before the body is sent; do not reuse that connection.
+    $request.Headers.ConnectionClose = $true
     $bytes = [Text.Encoding]::UTF8.GetBytes($body)
     if ($body.Length) {
         $request.Content = [System.Net.Http.ByteArrayContent]::new($bytes)
