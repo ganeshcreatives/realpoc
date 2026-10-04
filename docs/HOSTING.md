@@ -45,13 +45,13 @@ The combined free container uses one bootstrap identity/environment for two proc
 
 ## 3. Create the Render service
 
-Import `render.yaml` from the owned repository. The image builds React and both .NET 10 services. Only the BFF port is public; the API listens on container loopback. Use the automatically assigned Render HTTPS hostname as `PublicOrigin` (no path, e.g. `https://your-service.onrender.com`).
+Import `render.yaml` from the owned repository, or create a free Docker web service from the public repository. The image builds React and both .NET 10 services. Only the BFF port is public; the API listens on container loopback. For a manual Render service, the startup script uses Render's `RENDER_EXTERNAL_URL` as `PublicOrigin`. Set `PublicOrigin` explicitly when using a custom domain or another host.
 
 Set these private environment values:
 
 | Setting | Value |
 |---|---|
-| `PublicOrigin` | Exact public HTTPS origin |
+| `PublicOrigin` | Exact public HTTPS origin for a custom domain or non-Render host; optional for a manual Render web service |
 | `Database__Connection` | Npgsql-style Neon connection string, e.g. `Host=...;Database=...;Username=...;Password=...;SSL Mode=VerifyFull;Timeout=3;Command Timeout=3;Maximum Pool Size=10` |
 | `Secrets__Provider` | `Infisical` |
 | `Infisical__Url` | Your regional HTTPS base URL, e.g. `https://us.infisical.com` |

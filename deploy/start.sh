@@ -1,5 +1,8 @@
 #!/bin/bash
 set -euo pipefail
+if [ -z "${PublicOrigin:-}" ] && [ -n "${RENDER_EXTERNAL_URL:-}" ]; then
+  export PublicOrigin="$RENDER_EXTERNAL_URL"
+fi
 : "${PublicOrigin:?Set the public HTTPS origin}"
 : "${Database__Connection:?Set the PostgreSQL connection string}"
 export Database__Provider=Postgres
