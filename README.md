@@ -20,8 +20,8 @@ The setup uses a project-local .NET 10 SDK, installs locked npm dependencies, bu
 
 ### First account
 
-1. Create a parent account using a passphrase of at least 15 characters.
-2. Open the latest file in `.local\mail`, follow its verification link, and choose your name and password. Local mode does not send email.
+1. Enter an email address to start parent registration.
+2. Open the latest file in `.local\mail`, follow its verification link, and choose your name and a password of at least 15 characters. Local mode does not send email.
 3. Sign in, add a student, view their zero starting balance, and submit an application.
 4. To explore staff review, register and verify a second account, then run:
 
