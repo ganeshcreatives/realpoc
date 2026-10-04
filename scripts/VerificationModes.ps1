@@ -44,6 +44,14 @@ try {
             Expect "$mode login" (Call POST "$base/api-proxy/auth/login" (@{email=$email;password=$password}|ConvertTo-Json -Compress) $session) 200
             $expected=if ($mode -eq 'Enforce') {403} else {200}
             Expect "$mode unsigned browser request" (Call GET "$base/api-proxy/api/schools" '' $session) $expected
+            $tamperedHeaders=@{
+                Origin=$base; 'X-SC-App'='main'; 'X-SC-Session'='cookie';
+                'X-SC-Timestamp'=[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds().ToString();
+                'X-SC-Request-Id'=[Guid]::NewGuid().ToString();
+                'X-SC-Signature'=[Convert]::ToBase64String([byte[]]::new(32))
+            }
+            $tampered=Invoke-WebRequest -Method Post -Uri "$base/api-proxy/api/students" -ContentType 'application/json' -Body (@{id=[Guid]::NewGuid().ToString();name='Disposable Mode Student';grade=2}|ConvertTo-Json -Compress) -Headers $tamperedHeaders -WebSession $session -SkipHttpErrorCheck -TimeoutSec 35
+            Expect "$mode forged browser signature" $tampered $expected
             $directExpected=if ($mode -eq 'Enforce') {403} else {202}
             Expect "$mode unsigned direct API auth request" (Call POST "$api/auth/forgot" (@{email=$email}|ConvertTo-Json -Compress)) $directExpected
             $authExpected=if ($mode -eq 'Enforce') {403} else {401}
@@ -55,6 +63,9 @@ try {
                     if ($log -notmatch "Signature shadow $($entry.hop) SIGNATURE_MISSING") { throw "Shadow log missing for $($entry.hop)" }
                     Write-Host "PASS Shadow safe log for $($entry.hop)"
                 }
+                $browserLog=Get-Content -LiteralPath (Join-Path $root '.local\bff.log') -Raw
+                if ($browserLog -notmatch 'Signature shadow Browser SIGNATURE_INVALID') { throw 'Shadow tamper log missing' }
+                Write-Host 'PASS Shadow logs forged browser signature'
             }
         }
         finally { & (Join-Path $PSScriptRoot 'Stop.ps1') }
